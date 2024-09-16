@@ -1,0 +1,111 @@
+body, html {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .widget {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-family: Arial, sans-serif;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+    width: 350px;
+    box-sizing: border-box;
+  }
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.widget-icon {
+  font-size: 24px;
+}
+
+.widget-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.widget-controls button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.task-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.task-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.task-controls {
+  display: flex;
+  align-items: center;
+}
+
+.task-controls button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.deadline-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  text-align: center;
+  line-height: 20px;
+}
+
+.add-task-form, .edit-task-form, .settings-form {
+  margin-top: 10px;
+}
+
+.add-task-form input, .edit-task-form input, .settings-form input {
+  display: block;
+  margin-bottom: 5px;
+  width: 100%;
+}
+
+.add-task-form button, .edit-task-form button, .settings-form button {
+  margin-top: 5px;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  z-index: 1000;
+  max-width: 300px;
+  word-wrap: break-word;
+  pointer-events: none;
+}
