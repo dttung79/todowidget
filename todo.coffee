@@ -123,13 +123,20 @@ afterRender: (domEl) ->
       editButton.onclick = -> editTask(index)
       controls.appendChild(editButton)
 
+      deadlineIndicator = document.createElement('div')
+      deadlineIndicator.className = 'deadline-indicator'
+      
       if task.deadline
-        deadlineButton = document.createElement('button')
-        deadlineButton.className = 'deadline-button'
-        deadlineButton.textContent = '⏰'
         progress = getDeadlineProgress(task.deadline, task.createdAt)
-        deadlineButton.style.background = "conic-gradient(#{getProgressColor(progress)} #{progress}%, transparent #{progress}%)"
-        controls.appendChild(deadlineButton)
+        color = getProgressColor(progress)
+        deadlineIndicator.style.background = "conic-gradient(
+          #{color} 0deg #{progress * 3.6}deg,
+          transparent #{progress * 3.6}deg 360deg
+        )"
+      else
+        deadlineIndicator.style.background = "linear-gradient(to top right, transparent calc(50% - 1px), black, transparent calc(50% + 1px))"
+      
+      controls.appendChild(deadlineIndicator)
 
       taskElement.appendChild(controls)
       taskList.appendChild(taskElement)
