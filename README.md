@@ -1,6 +1,6 @@
 # Do Them Now! - Übersicht Widget
 
-A customizable to-do list widget for Übersicht, designed to help you manage tasks efficiently on your desktop.
+A customizable to-do list widget for Übersicht, designed to help you manage tasks efficiently on your MacOS desktop.
 
 ## Features
 
@@ -13,8 +13,8 @@ A customizable to-do list widget for Übersicht, designed to help you manage tas
 ## Installation
 
 1. Install [Übersicht](http://tracesof.net/uebersicht/) if you haven't already.
-2. Download the `todo.coffee` file.
-3. Move the file to your Übersicht widgets folder:
+2. Download the `todo.coffee` and `style.css` files.
+3. Move the files to your Übersicht widgets folder:
    ```
    ~/Library/Application Support/Übersicht/widgets/
    ```
@@ -25,7 +25,7 @@ A customizable to-do list widget for Übersicht, designed to help you manage tas
 - Click on a task to view details
 - Use the edit (✏️) button to modify tasks
 - Click the checkmark (✓) to complete a task
-- The clock icon (⏰) shows deadline progress
+- The circle icon shows deadline progress
 - Access settings with the gear (⚙️) icon
 
 ## Customization
@@ -39,7 +39,7 @@ Adjust widget settings through the settings menu:
 
 ## Notes
 
-- The widget refreshes every minute
+- The widget refreshes every hour
 - Tasks and settings are saved in local storage
 
 Enjoy staying organized with your new desktop to-do list!

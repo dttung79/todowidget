@@ -2,7 +2,7 @@
 
 command: ""
 
-refreshFrequency: 60000 # Refresh every minute
+refreshFrequency: 3600000 # Refresh every hour
 
 render: -> """
   <div class="widget">
