@@ -11,10 +11,12 @@ render: -> """
       <span class="widget-title">Do them now!</span>
       <span class="widget-controls">
         <button class="add-task">➕</button>
+        <button class="calendar-toggle">📅</button>
         <button class="settings">⚙️</button>
       </span>
     </div>
     <div class="task-list"></div>
+    <div class="calendar-container" style="display: none;"></div>
     <div class="add-task-form" style="display: none;">
       <label for="task-name">Task Name:</label>
       <input type="text" id="task-name" placeholder="Enter task name">
@@ -74,6 +76,8 @@ afterRender: (domEl) ->
   tooltipTimer = null
   currentTooltip = null
   currentCompleteTaskIndex = null
+  calendarVisible = false
+  currentCalendarDate = new Date()
 
   loadTasks = ->
     savedTasks = localStorage.getItem('tasks')
@@ -115,7 +119,7 @@ afterRender: (domEl) ->
 
       taskName = document.createElement('span')
       taskName.className = 'task-name'
-      truncatedName = truncateText(task.name, 100)
+      truncatedName = truncateText(task.name, 300)
       taskName.textContent = truncatedName
       if truncatedName != task.name
         taskName.setAttribute('data-full-text', task.name)
@@ -179,26 +183,37 @@ afterRender: (domEl) ->
   showTaskDetails = (index) ->
     task = tasks[index]
     editForm = domEl.querySelector('.edit-task-form')
-    if editForm.style.display == 'block' && editForm.getAttribute('data-task-index') == index.toString()
+    # check if the form is already open then close it
+    if editForm.style.display == 'block'
       editForm.style.display = 'none'
-      domEl.querySelector('#save-edit-task').style.display = 'inline-block'
-      domEl.querySelector('#edit-task-color').style.display = 'block'
-      domEl.querySelector('#cancel-edit-task').textContent = 'Cancel'
-      domEl.querySelector('#cancel-edit-task').onclick = -> editForm.style.display = 'none'
-    else
-      domEl.querySelector('#edit-task-name').value = task.name
-      domEl.querySelector('#edit-task-color').value = task.color || '#ffff'
-      domEl.querySelector('#edit-task-deadline').value = task.deadline || ''
-      editForm.style.display = 'block'
-      editForm.setAttribute('data-task-index', index)
-      domEl.querySelector('#save-edit-task').style.display = 'inline-block'
-      domEl.querySelector('#save-edit-task').onclick = ->
-        task.name = domEl.querySelector('#edit-task-name').value
-        task.color = domEl.querySelector('#edit-task-color').value
-        task.deadline = domEl.querySelector('#edit-task-deadline').value
-        saveTasks()
-        renderTasks()
-        editForm.style.display = 'none'
+      return
+    editForm.innerHTML = ''
+    
+    taskNameLabel = document.createElement('label')
+    taskNameLabel.textContent = 'Task Name:'
+    editForm.appendChild(taskNameLabel)
+    
+    taskNameInput = document.createElement('input')
+    taskNameInput.type = 'text'
+    taskNameInput.value = task.name
+    editForm.appendChild(taskNameInput)
+    
+    deadlineLabel = document.createElement('label')
+    deadlineLabel.textContent = 'Deadline:'
+    editForm.appendChild(deadlineLabel)
+    
+    deadlineInput = document.createElement('input')
+    deadlineInput.type = 'datetime-local'
+    deadlineInput.value = task.deadline
+    editForm.appendChild(deadlineInput)
+    
+    closeButton = document.createElement('button')
+    closeButton.textContent = 'Close'
+    closeButton.onclick = -> editForm.style.display = 'none'
+    editForm.appendChild(closeButton)
+    
+    editForm.style.display = 'block'
+    editForm.setAttribute('data-task-index', index)
 
   addTask = ->
     name = domEl.querySelector('#task-name').value
@@ -209,28 +224,55 @@ afterRender: (domEl) ->
       tasks.push({ name, color, deadline, createdAt: new Date().toISOString() })
       saveTasks()
       renderTasks()
+      renderCalendar() # Update calendar when tasks change
       domEl.querySelector('.add-task-form').style.display = 'none'
 
   editTask = (index) ->
     task = tasks[index]
-    domEl.querySelector('#edit-task-name').value = task.name
-    domEl.querySelector('#edit-task-color').value = task.color || '#ffff'
-    domEl.querySelector('#edit-task-color').style.display = 'block'
-    domEl.querySelector('#edit-task-deadline').value = task.deadline || ''
-    domEl.querySelector('.edit-task-form').style.display = 'block'
-    domEl.querySelector('#save-edit-task').style.display = 'inline-block'
-    domEl.querySelector('#save-edit-task').onclick = ->
-      task.name = domEl.querySelector('#edit-task-name').value
-      task.color = domEl.querySelector('#edit-task-color').value
-      task.deadline = domEl.querySelector('#edit-task-deadline').value
+    editForm = domEl.querySelector('.edit-task-form')
+    editForm.innerHTML = ''
+    
+    taskNameLabel = document.createElement('label')
+    taskNameLabel.textContent = 'Task Name:'
+    editForm.appendChild(taskNameLabel)
+    
+    taskNameInput = document.createElement('input')
+    taskNameInput.type = 'text'
+    taskNameInput.value = task.name
+    editForm.appendChild(taskNameInput)
+    
+    deadlineLabel = document.createElement('label')
+    deadlineLabel.textContent = 'Deadline:'
+    editForm.appendChild(deadlineLabel)
+    
+    deadlineInput = document.createElement('input')
+    deadlineInput.type = 'datetime-local'
+    deadlineInput.value = task.deadline
+    editForm.appendChild(deadlineInput)
+    
+    saveButton = document.createElement('button')
+    saveButton.textContent = 'Save'
+    saveButton.onclick = ->
+      task.name = taskNameInput.value
+      task.deadline = deadlineInput.value
       saveTasks()
       renderTasks()
-      domEl.querySelector('.edit-task-form').style.display = 'none'
+      editForm.style.display = 'none'
+    editForm.appendChild(saveButton)
+    # add cancel button
+    cancelButton = document.createElement('button')
+    cancelButton.textContent = 'Cancel'
+    cancelButton.onclick = -> editForm.style.display = 'none'
+    editForm.appendChild(cancelButton)
+    
+    editForm.style.display = 'block'
+    editForm.setAttribute('data-task-index', index)
 
   completeTask = (index) ->
     tasks.splice(index, 1)
     saveTasks()
     renderTasks()
+    renderCalendar() # Update calendar when tasks change
 
   # Confirmation dialog functions
   showConfirmCompleteTaskForm = (index) ->
@@ -293,9 +335,98 @@ afterRender: (domEl) ->
   showWidget = ->
     domEl.querySelector('.widget').style.display = 'block'
 
+  # Calendar functions
+  toggleCalendar = ->
+    calendarContainer = domEl.querySelector('.calendar-container')
+    calendarIcon = domEl.querySelector('.calendar-toggle')
+    if calendarVisible
+      calendarContainer.style.display = 'none'
+      calendarIcon.classList.remove('active')
+      calendarVisible = false
+    else
+      renderCalendar()
+      calendarContainer.style.display = 'block'
+      calendarIcon.classList.add('active')
+      calendarVisible = true
+
+  renderCalendar = ->
+    calendarContainer = domEl.querySelector('.calendar-container')
+    calendarContainer.innerHTML = ''
+    month = currentCalendarDate.getMonth()
+    year = currentCalendarDate.getFullYear()
+    firstDay = new Date(year, month, 1).getDay()
+    daysInMonth = new Date(year, month + 1, 0).getDate()
+
+    # Header with navigation
+    header = document.createElement('div')
+    header.className = 'calendar-header'
+
+    prevButton = document.createElement('button')
+    prevButton.textContent = '←'
+    prevButton.onclick = ->
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1)
+      renderCalendar()
+
+    nextButton = document.createElement('button')
+    nextButton.textContent = '→'
+    nextButton.onclick = ->
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1)
+      renderCalendar()
+
+    monthYear = document.createElement('span')
+    monthYear.className = 'calendar-month-year'
+    monthYear.textContent = currentCalendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+
+    header.appendChild(prevButton)
+    header.appendChild(monthYear)
+    header.appendChild(nextButton)
+    calendarContainer.appendChild(header)
+
+    # Weekdays
+    weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    weekdaysRow = document.createElement('div')
+    weekdaysRow.className = 'calendar-weekdays'
+    for dayName in weekdays
+      day = document.createElement('div')
+      day.className = 'calendar-weekday'
+      day.textContent = dayName
+      weekdaysRow.appendChild(day)
+    calendarContainer.appendChild(weekdaysRow)
+
+    # Days
+    daysContainer = document.createElement('div')
+    daysContainer.className = 'calendar-days'
+
+    # Blank days before first day
+    for i in [0...firstDay]
+      blankDay = document.createElement('div')
+      blankDay.className = 'calendar-day blank'
+      daysContainer.appendChild(blankDay)
+
+    # Actual days
+    for date in [1..daysInMonth]
+      day = document.createElement('div')
+      day.className = 'calendar-day'
+      day.textContent = date
+
+      # Check if any task has a deadline on this date
+      dateStr = new Date(year, month, date).toISOString().split('T')[0]
+      hasDeadline = tasks.some((task) ->
+        task.deadline?.startsWith(dateStr)
+      )
+      if hasDeadline
+        # add deadline class to the day before this date
+        previousDay = daysContainer.children[daysContainer.children.length - 1]
+        if previousDay
+          previousDay.classList.add('deadline')
+      daysContainer.appendChild(day)
+
+    calendarContainer.appendChild(daysContainer)
+
   # Event listeners
   domEl.querySelector('.add-task').addEventListener('click', showAddTaskForm)
   domEl.querySelector('.settings').addEventListener('click', showSettingsForm)
+  domEl.querySelector('.calendar-toggle').addEventListener('click', toggleCalendar)
   domEl.querySelector('#save-task').addEventListener('click', addTask)
   domEl.querySelector('#save-settings').addEventListener('click', saveSettingsForm)
   domEl.querySelector('#cancel-add-task').addEventListener('click', -> domEl.querySelector('.add-task-form').style.display = 'none')

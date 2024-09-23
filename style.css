@@ -11,7 +11,7 @@ body, html {
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 10px;
     padding: 10px;
-    width: 350px;
+    width: 400px;
     box-sizing: border-box;
   }
 
@@ -56,7 +56,7 @@ body, html {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 350px;
   display: inline-block;
   cursor: pointer;
 }
@@ -119,4 +119,57 @@ body, html {
   margin-left: 5px;
   border: 1px solid black;
   box-sizing: border-box;
+}
+
+.calendar-toggle.active {
+  background-color: #eee;
+  border: 1px solid #ccc;
+}
+
+.calendar-container {
+  margin-top: 10px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.calendar-header button {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.calendar-month-year {
+  font-weight: bold;
+}
+
+.calendar-weekdays, .calendar-days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.calendar-weekday, .calendar-day {
+  width: calc(100% / 7);
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.calendar-day {
+  height: 30px;
+  line-height: 30px;
+  cursor: default;
+}
+
+.calendar-day.deadline {
+  background-color: #f9c74f;
+  border-radius: 50%;
+}
+
+.calendar-day.blank {
+  visibility: hidden;
 }
