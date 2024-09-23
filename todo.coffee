@@ -2,7 +2,7 @@
 
 command: ""
 
-refreshFrequency: 3600000 # Refresh every hour
+refreshFrequency: 360000 # Refresh every hour
 
 render: -> """
   <div class="widget">
@@ -19,7 +19,7 @@ render: -> """
       <label for="task-name">Task Name:</label>
       <input type="text" id="task-name" placeholder="Enter task name">
       <label for="task-color">Task Color:</label>
-      <input type="color" id="task-color" value="#ffffff">
+      <input type="color" id="task-color" value="#ffff">
       <label for="task-deadline">Deadline:</label>
       <input type="datetime-local" id="task-deadline">
       <button id="save-task">Save</button>
@@ -27,10 +27,15 @@ render: -> """
     </div>
     <div class="edit-task-form" style="display: none;">
       <input type="text" id="edit-task-name" placeholder="Task name">
-      <input type="color" id="edit-task-color" value="#ffffff">
+      <input type="color" id="edit-task-color" value="#ffff">
       <input type="datetime-local" id="edit-task-deadline">
       <button id="save-edit-task">Save</button>
       <button id="cancel-edit-task">Cancel</button>
+    </div>
+    <div class="confirm-complete-task-form" style="display: none;">
+      <p>Are you sure you want to complete this task?</p>
+      <button id="confirm-complete-yes">Yes</button>
+      <button id="confirm-complete-no">No</button>
     </div>
     <div class="settings-form" style="display: none;">
       <label for="opacity">Opacity:</label>
@@ -38,9 +43,9 @@ render: -> """
       <label for="reminder-time">Reminder Time:</label>
       <input type="time" id="reminder-time" value="01:00">
       <label for="text-color">Text Color:</label>
-      <input type="color" id="text-color" value="#000000">
+      <input type="color" id="text-color" value="#0000">
       <label for="widget-bg-color">Background Color:</label>
-      <input type="color" id="widget-bg-color" value="#ffffff">
+      <input type="color" id="widget-bg-color" value="#ffff">
       <label for="widget-title">Widget Title:</label>
       <input type="text" id="widget-title" value="Do them now!">
       <button id="save-settings">Save</button>
@@ -62,18 +67,19 @@ afterRender: (domEl) ->
   settings = {
     opacity: 50,
     reminderTime: '01:00',
-    textColor: '#000000',
-    widgetBgColor: '#ffffff',
+    textColor: '#0000',
+    widgetBgColor: '#ffff',
     widgetTitle: 'Do them now!'
   }
   tooltipTimer = null
   currentTooltip = null
+  currentCompleteTaskIndex = null
 
   loadTasks = ->
     savedTasks = localStorage.getItem('tasks')
     if savedTasks
       tasks = JSON.parse(savedTasks)
-      renderTasks()
+    renderTasks()
 
   saveTasks = ->
     localStorage.setItem('tasks', JSON.stringify(tasks))
@@ -82,7 +88,7 @@ afterRender: (domEl) ->
     savedSettings = localStorage.getItem('settings')
     if savedSettings
       settings = JSON.parse(savedSettings)
-      applySettings()
+    applySettings()
 
   saveSettings = ->
     localStorage.setItem('settings', JSON.stringify(settings))
@@ -123,7 +129,8 @@ afterRender: (domEl) ->
 
       completeButton = document.createElement('button')
       completeButton.textContent = '✓'
-      completeButton.onclick = -> completeTask(index)
+      completeButton.onclick = ->
+        showConfirmCompleteTaskForm(index)
       controls.appendChild(completeButton)
 
       editButton = document.createElement('button')
@@ -180,7 +187,7 @@ afterRender: (domEl) ->
       domEl.querySelector('#cancel-edit-task').onclick = -> editForm.style.display = 'none'
     else
       domEl.querySelector('#edit-task-name').value = task.name
-      domEl.querySelector('#edit-task-color').value = task.color || '#ffffff'
+      domEl.querySelector('#edit-task-color').value = task.color || '#ffff'
       domEl.querySelector('#edit-task-deadline').value = task.deadline || ''
       editForm.style.display = 'block'
       editForm.setAttribute('data-task-index', index)
@@ -207,7 +214,7 @@ afterRender: (domEl) ->
   editTask = (index) ->
     task = tasks[index]
     domEl.querySelector('#edit-task-name').value = task.name
-    domEl.querySelector('#edit-task-color').value = task.color || '#ffffff'
+    domEl.querySelector('#edit-task-color').value = task.color || '#ffff'
     domEl.querySelector('#edit-task-color').style.display = 'block'
     domEl.querySelector('#edit-task-deadline').value = task.deadline || ''
     domEl.querySelector('.edit-task-form').style.display = 'block'
@@ -224,6 +231,20 @@ afterRender: (domEl) ->
     tasks.splice(index, 1)
     saveTasks()
     renderTasks()
+
+  # Confirmation dialog functions
+  showConfirmCompleteTaskForm = (index) ->
+    currentCompleteTaskIndex = index
+    domEl.querySelector('.confirm-complete-task-form').style.display = 'block'
+
+  hideConfirmCompleteTaskForm = ->
+    domEl.querySelector('.confirm-complete-task-form').style.display = 'none'
+    currentCompleteTaskIndex = null
+
+  completeTaskConfirmed = ->
+    if currentCompleteTaskIndex != null
+      completeTask(currentCompleteTaskIndex)
+      hideConfirmCompleteTaskForm()
 
   getDeadlineProgress = (deadline, createdAt) ->
     now = new Date()
@@ -280,6 +301,8 @@ afterRender: (domEl) ->
   domEl.querySelector('#cancel-add-task').addEventListener('click', -> domEl.querySelector('.add-task-form').style.display = 'none')
   domEl.querySelector('#cancel-settings').addEventListener('click', -> domEl.querySelector('.settings-form').style.display = 'none')
   domEl.querySelector('#cancel-edit-task').addEventListener('click', -> domEl.querySelector('.edit-task-form').style.display = 'none')
+  domEl.querySelector('#confirm-complete-yes').addEventListener('click', completeTaskConfirmed)
+  domEl.querySelector('#confirm-complete-no').addEventListener('click', hideConfirmCompleteTaskForm)
 
   # Initialize
   loadTasks()
