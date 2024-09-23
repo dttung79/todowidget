@@ -16,8 +16,11 @@ render: -> """
     </div>
     <div class="task-list"></div>
     <div class="add-task-form" style="display: none;">
-      <input type="text" id="task-name" placeholder="Task name">
+      <label for="task-name">Task Name:</label>
+      <input type="text" id="task-name" placeholder="Enter task name">
+      <label for="task-color">Task Color:</label>
       <input type="color" id="task-color" value="#ffffff">
+      <label for="task-deadline">Deadline:</label>
       <input type="datetime-local" id="task-deadline">
       <button id="save-task">Save</button>
       <button id="cancel-add-task">Cancel</button>
@@ -30,10 +33,15 @@ render: -> """
       <button id="cancel-edit-task">Cancel</button>
     </div>
     <div class="settings-form" style="display: none;">
+      <label for="opacity">Opacity:</label>
       <input type="range" id="opacity" min="0" max="100" value="50">
+      <label for="reminder-time">Reminder Time:</label>
       <input type="time" id="reminder-time" value="01:00">
+      <label for="text-color">Text Color:</label>
       <input type="color" id="text-color" value="#000000">
+      <label for="widget-bg-color">Background Color:</label>
       <input type="color" id="widget-bg-color" value="#ffffff">
+      <label for="widget-title">Widget Title:</label>
       <input type="text" id="widget-title" value="Do them now!">
       <button id="save-settings">Save</button>
       <button id="cancel-settings">Cancel</button>
@@ -163,18 +171,27 @@ afterRender: (domEl) ->
 
   showTaskDetails = (index) ->
     task = tasks[index]
-    domEl.querySelector('#edit-task-name').value = task.name
-    domEl.querySelector('#edit-task-deadline').value = task.deadline || ''
-    domEl.querySelector('.edit-task-form').style.display = 'block'
-    domEl.querySelector('#save-edit-task').style.display = 'none'
-    domEl.querySelector('#edit-task-color').style.display = 'none'
-    domEl.querySelector('#cancel-edit-task').textContent = 'Close'
-    domEl.querySelector('#cancel-edit-task').onclick = ->
-      domEl.querySelector('.edit-task-form').style.display = 'none'
+    editForm = domEl.querySelector('.edit-task-form')
+    if editForm.style.display == 'block' && editForm.getAttribute('data-task-index') == index.toString()
+      editForm.style.display = 'none'
       domEl.querySelector('#save-edit-task').style.display = 'inline-block'
       domEl.querySelector('#edit-task-color').style.display = 'block'
       domEl.querySelector('#cancel-edit-task').textContent = 'Cancel'
-      domEl.querySelector('#cancel-edit-task').onclick = -> domEl.querySelector('.edit-task-form').style.display = 'none'
+      domEl.querySelector('#cancel-edit-task').onclick = -> editForm.style.display = 'none'
+    else
+      domEl.querySelector('#edit-task-name').value = task.name
+      domEl.querySelector('#edit-task-color').value = task.color || '#ffffff'
+      domEl.querySelector('#edit-task-deadline').value = task.deadline || ''
+      editForm.style.display = 'block'
+      editForm.setAttribute('data-task-index', index)
+      domEl.querySelector('#save-edit-task').style.display = 'inline-block'
+      domEl.querySelector('#save-edit-task').onclick = ->
+        task.name = domEl.querySelector('#edit-task-name').value
+        task.color = domEl.querySelector('#edit-task-color').value
+        task.deadline = domEl.querySelector('#edit-task-deadline').value
+        saveTasks()
+        renderTasks()
+        editForm.style.display = 'none'
 
   addTask = ->
     name = domEl.querySelector('#task-name').value
@@ -231,6 +248,11 @@ afterRender: (domEl) ->
     domEl.querySelector('.add-task-form').style.display = 'block'
 
   showSettingsForm = ->
+    domEl.querySelector('#opacity').value = settings.opacity
+    domEl.querySelector('#reminder-time').value = settings.reminderTime
+    domEl.querySelector('#text-color').value = settings.textColor
+    domEl.querySelector('#widget-bg-color').value = settings.widgetBgColor
+    domEl.querySelector('#widget-title').value = settings.widgetTitle
     domEl.querySelector('.settings-form').style.display = 'block'
 
   saveSettingsForm = ->
